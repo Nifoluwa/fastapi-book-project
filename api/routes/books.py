@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 from api.db.schemas import Book, Genre, InMemoryDB
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -40,7 +41,14 @@ async def create_book(book: Book):
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=book.model_dump()
     )
-
+# Get individual books
+@router.get(
+    "/{book_id}", response_model=Book, status_code=status.HTTP_200_OK
+)
+async def get_book(book_id:int) -> Book:
+    if book_id not in db.get_books().keys():
+        raise HTTPException(status_code=404, detail='Book not found')
+    return db.get_book(book_id)
 
 @router.get(
     "/", response_model=OrderedDict[int, Book], status_code=status.HTTP_200_OK
